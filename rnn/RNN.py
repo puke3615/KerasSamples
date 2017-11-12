@@ -7,22 +7,23 @@ from keras.engine import *
 from keras.datasets import mnist
 from keras.layers import *
 
-im_width = 28
-im_height = 28
 n_classes = 10
+n_steps = 28
+n_feature = 28
+n_hidden = 128
 batch_size = 200
 epochs = 10
 validate_rate = 0.2
 learning_rate = 1e-2
-params_path = utils.root_path('params/cnn.h5')
+params_path = utils.root_path('params/rnn.h5')
 train = True
 
 
 def load_data():
     # load data set
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    x_train = np.expand_dims(np.divide(x_train, 255.), -1)
-    x_test = np.expand_dims(np.divide(x_test, 255.), -1)
+    x_train = np.divide(x_train, 255.)
+    x_test = np.divide(x_test, 255.)
     y_train = keras.utils.to_categorical(y_train, n_classes)
     y_test = keras.utils.to_categorical(y_test, n_classes)
     return (x_train, y_train), (x_test, y_test)
@@ -30,15 +31,9 @@ def load_data():
 
 def build_model():
     # build model
-    inputs = Input((im_height, im_width, 1))
+    inputs = Input((n_steps, n_feature))
     x = inputs
-    x = Conv2D(16, 3, padding='same', activation='relu')(x)
-    x = MaxPooling2D()(x)
-    x = Conv2D(32, 3, padding='same', activation='relu')(x)
-    x = MaxPooling2D()(x)
-    x = Flatten()(x)
-    x = Dense(1024, activation='relu')(x)
-    x = Dropout(0.25)(x)
+    x = LSTM(n_hidden)(x)
     outputs = Dense(10, activation='softmax')(x)
     return Model(inputs, outputs)
 
@@ -81,4 +76,4 @@ if __name__ == '__main__':
     scores = model.evaluate(x_test, y_test, batch_size=100)
     print('\n\n')
     print('Loss %s, Accuracy %s' % (scores[0], scores[1]))
-    # Loss 0.0559423817305, Accuracy 0.985800007582
+    # Loss 0.0673202586091, Accuracy 0.980500007272
